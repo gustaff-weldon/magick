@@ -51,6 +51,8 @@ ffi.cdef([[  typedef void MagickWand;
   MagickBooleanType MagickSetOption(MagickWand *,const char *,const char *);
   char* MagickGetOption(MagickWand *,const char *);
 
+  char* MagickGetImageProperty(MagickWand *, const char *);
+
   MagickBooleanType MagickCompositeImage(MagickWand *wand,
     const MagickWand *source_wand,const CompositeOperator compose,
     const ssize_t x,const ssize_t y);
@@ -64,6 +66,13 @@ ffi.cdef([[  typedef void MagickWand;
   MagickBooleanType MagickGetImagePixelColor(MagickWand *wand,
     const ssize_t x,const ssize_t y,PixelWand *color);
 
+  MagickBooleanType MagickRotateImage(MagickWand *wand,
+    const PixelWand *background,const double degrees);
+
+  MagickBooleanType MagickFlipImage (MagickWand *wand);
+
+  MagickBooleanType MagickFlopImage (MagickWand *wand);
+
   PixelWand *NewPixelWand(void);
   PixelWand *DestroyPixelWand(PixelWand *);
 
@@ -71,6 +80,10 @@ ffi.cdef([[  typedef void MagickWand;
   double PixelGetRed(const PixelWand *);
   double PixelGetGreen(const PixelWand *);
   double PixelGetBlue(const PixelWand *);
+
+  void* PixelSetRed(PixelWand *wand,const double red);
+  void* PixelSetGreen(PixelWand *wand,const double red);
+  void* PixelSetBlue(PixelWand *wand,const double red);
 ]])
 local get_flags
 get_flags = function()
@@ -315,6 +328,9 @@ do
       local format = magick .. ":" .. key
       return handle_result(self, lib.MagickSetOption(self.wand, format, value))
     end,
+    get_property = function( self, property )
+      return ffi.string(lib.MagickGetImageProperty(self.wand, property))
+    end,
     get_gravity = function(self)
       return gravity_str[lib.MagickGetImageGravity(self.wand)]
     end,
@@ -324,6 +340,19 @@ do
         error("invalid gravity type")
       end
       return lib.MagickSetImageGravity(self.wand, type)
+    end,
+    rotate = function( self, degrees )
+      self.pixel_wand = lib.NewPixelWand()
+      lib.PixelSetRed(self.pixel_wand, 255)
+      lib.PixelSetGreen(self.pixel_wand, 255)
+      lib.PixelSetBlue(self.pixel_wand, 255)
+      return lib.MagickRotateImage( self.wand, self.pixel_wand , degrees )
+    end,
+    flip = function( self )
+      return lib.MagickFlipImage(self.wand)
+    end,
+    flop = function( self )
+      return lib.MagickFlopImage(self.wand)
     end,
     strip = function(self)
       return lib.MagickStripImage(self.wand)
