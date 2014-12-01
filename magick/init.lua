@@ -69,9 +69,9 @@ ffi.cdef([[  typedef void MagickWand;
   MagickBooleanType MagickRotateImage(MagickWand *wand,
     const PixelWand *background,const double degrees);
 
-  MagickBooleanType MagickFlipImage (MagickWand *wand);
+  MagickBooleanType MagickFlipImage(MagickWand *wand);
 
-  MagickBooleanType MagickFlopImage (MagickWand *wand);
+  MagickBooleanType MagickFlopImage(MagickWand *wand);
 
   PixelWand *NewPixelWand(void);
   PixelWand *DestroyPixelWand(PixelWand *);
@@ -82,8 +82,8 @@ ffi.cdef([[  typedef void MagickWand;
   double PixelGetBlue(const PixelWand *);
 
   void* PixelSetRed(PixelWand *wand,const double red);
-  void* PixelSetGreen(PixelWand *wand,const double red);
-  void* PixelSetBlue(PixelWand *wand,const double red);
+  void* PixelSetGreen(PixelWand *wand,const double green);
+  void* PixelSetBlue(PixelWand *wand,const double blue);
 ]])
 local get_flags
 get_flags = function()
@@ -328,8 +328,12 @@ do
       local format = magick .. ":" .. key
       return handle_result(self, lib.MagickSetOption(self.wand, format, value))
     end,
-    get_property = function( self, property )
-      return ffi.string(lib.MagickGetImageProperty(self.wand, property))
+    get_property = function(self, property)
+      local value = lib.MagickGetImageProperty(self.wand, property)
+      if value == nil or value == ffi.NULL then
+          return nil
+      end
+      return ffi.string( value )
     end,
     get_gravity = function(self)
       return gravity_str[lib.MagickGetImageGravity(self.wand)]
@@ -346,7 +350,7 @@ do
       lib.PixelSetRed(self.pixel_wand, 255)
       lib.PixelSetGreen(self.pixel_wand, 255)
       lib.PixelSetBlue(self.pixel_wand, 255)
-      return lib.MagickRotateImage( self.wand, self.pixel_wand , degrees )
+      return lib.MagickRotateImage(self.wand, self.pixel_wand , degrees)
     end,
     flip = function( self )
       return lib.MagickFlipImage(self.wand)
