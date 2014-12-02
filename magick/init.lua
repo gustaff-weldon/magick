@@ -14,7 +14,6 @@ ffi.cdef([[  typedef void MagickWand;
   MagickWand* DestroyMagickWand(MagickWand*);
   MagickBooleanType MagickReadImage(MagickWand*, const char*);
   MagickBooleanType MagickReadImageBlob(MagickWand*, const void*, const size_t);
-
   const char* MagickGetException(const MagickWand*, ExceptionType*);
 
   int MagickGetImageWidth(MagickWand*);
@@ -65,6 +64,8 @@ ffi.cdef([[  typedef void MagickWand;
 
   MagickBooleanType MagickGetImagePixelColor(MagickWand *wand,
     const ssize_t x,const ssize_t y,PixelWand *color);
+
+  MagickBooleanType MagickAutoOrientImage(MagickWand*);
 
   MagickBooleanType MagickRotateImage(MagickWand *wand,
     const PixelWand *background,const double degrees);
@@ -333,7 +334,7 @@ do
       if value == nil or value == ffi.NULL then
           return nil
       end
-      return ffi.string( value )
+      return ffi.string(value)
     end,
     get_gravity = function(self)
       return gravity_str[lib.MagickGetImageGravity(self.wand)]
@@ -344,6 +345,9 @@ do
         error("invalid gravity type")
       end
       return lib.MagickSetImageGravity(self.wand, type)
+    end,
+    auto_orient = function(self)
+      return lib.MagickAutoOrientImage(self.wand)
     end,
     rotate = function( self, degrees )
       self.pixel_wand = lib.NewPixelWand()
