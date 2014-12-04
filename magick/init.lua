@@ -8,6 +8,7 @@ ffi.cdef([[  typedef void MagickWand;
   typedef int ssize_t;
   typedef int CompositeOperator;
   typedef int GravityType;
+  typedef int OrientationType;
 
   void MagickWandGenesis();
   MagickWand* NewMagickWand();
@@ -56,6 +57,8 @@ ffi.cdef([[  typedef void MagickWand;
     const MagickWand *source_wand,const CompositeOperator compose,
     const ssize_t x,const ssize_t y);
 
+  OrientationType MagickGetImageOrientation(MagickWand *wand);
+
   GravityType MagickGetImageGravity(MagickWand *wand);
   MagickBooleanType MagickSetImageGravity(MagickWand *wand,
     const GravityType gravity);
@@ -73,6 +76,10 @@ ffi.cdef([[  typedef void MagickWand;
   MagickBooleanType MagickFlipImage(MagickWand *wand);
 
   MagickBooleanType MagickFlopImage(MagickWand *wand);
+
+  MagickBooleanType MagickTransposeImage(MagickWand *wand);
+
+  MagickBooleanType MagickTransverseImage(MagickWand *wand);
 
   PixelWand *NewPixelWand(void);
   PixelWand *DestroyPixelWand(PixelWand *);
@@ -262,6 +269,17 @@ local composite_op = {
   ["DarkenIntensityCompositeOp"] = 66,
   ["LightenIntensityCompositeOp"] = 67
 }
+local orientation_str = {
+  [0] = "UndefinedOrientation",
+  [1] = "TopLeftOrientation",
+  [2] = "TopRightOrientation",
+  [3] = "BottomRightOrientation",
+  [4] = "BottomLeftOrientation",
+  [5] = "LeftTopOrientation",
+  [6] = "RightTopOrientation",
+  [7] = "RightBottomOrientation",
+  [8] = "LeftBottomOrientation"
+}
 local gravity_str = {
   "ForgetGravity",
   "NorthWestGravity",
@@ -336,6 +354,12 @@ do
       end
       return ffi.string(value)
     end,
+    get_orientation = function(self)
+      return lib.MagickGetImageOrientation(self.wand)
+    end,
+    get_orientation_string = function(self)
+      return orientation_str[lib.MagickGetImageOrientation(self.wand)]
+    end,
     get_gravity = function(self)
       return gravity_str[lib.MagickGetImageGravity(self.wand)]
     end,
@@ -361,6 +385,12 @@ do
     end,
     flop = function( self )
       return lib.MagickFlopImage(self.wand)
+    end,
+    transpose = function( self )
+      return lib.MagickTransposeImage(self.wand)
+    end,
+    transverse = function( self )
+      return lib.MagickTransverseImage(self.wand)
     end,
     strip = function(self)
       return lib.MagickStripImage(self.wand)
